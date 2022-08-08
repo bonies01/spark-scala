@@ -1,6 +1,6 @@
 package com.sparkbyexamples.spark.bonies
 
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 case class WordCase(key:String,cnt:Int)
 /**
  *
@@ -27,8 +27,9 @@ object SparkSqlWordCount {
     words.show()
     words.createOrReplaceTempView("t_works")
     val sql="select key,count(*) as cnt from  t_works group by key order by count(*) desc"
-    session.sql(sql).show()
-    words.write.format("jdbc")
+    val rs=session.sql(sql)
+    rs.show()
+    rs.write.format("jdbc")
       .option("url", "jdbc:oracle:thin:@192.168.122.128:1521/helowin")
       .option("dbtable", "test_01")
       .option("user", "orcl")
