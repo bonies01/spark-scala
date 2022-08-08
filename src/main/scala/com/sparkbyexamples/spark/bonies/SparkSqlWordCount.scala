@@ -1,7 +1,7 @@
 package com.sparkbyexamples.spark.bonies
 
-import org.apache.spark.sql.SparkSession
-case class WordCase(value:String,cnt:Int)
+import org.apache.spark.sql.{SaveMode, SparkSession}
+case class WordCase(key:String,cnt:Int)
 /**
  *
  * spark sql work count
@@ -22,13 +22,19 @@ object SparkSqlWordCount {
     ds.show()
     //隐式转换
     import  session.implicits._
-    val works=ds.flatMap(_.split(" ")).map(work=>WordCase(work,1))
-    works.printSchema()
-    works.show()
-    val table=works.createOrReplaceTempView("t_works")
-    val sql="select value,count(*) as cnt from  t_works group by value order by count(*) desc"
+    val words=ds.flatMap(_.split(" ")).map(work=>WordCase(work,1))
+    words.printSchema()
+    words.show()
+    words.createOrReplaceTempView("t_works")
+    val sql="select key,count(*) as cnt from  t_works group by key order by count(*) desc"
     session.sql(sql).show()
-    works.groupBy('value).count().orderBy('count.desc).show()
+    words.write.format("jdbc")
+      .option("url", "jdbc:oracle:thin:@192.168.122.128:1521/helowin")
+      .option("dbtable", "test_01")
+      .option("user", "orcl")
+      .option("password", "123456")
+      .option("driver", "oracle.jdbc.driver.OracleDriver")
+      .mode(SaveMode.Append).save()
     session.close()
 
 
